@@ -26,6 +26,7 @@ def cargar_y_validar_logs(ruta_archivo):
 
         for num_fila, fila in enumerate(lector_csv, start=2):
             try:
+                
                 registro = {
                     "Cliente": fila["Cliente"].strip(),
                     "Tiempo de respuesta (ms)": int(
@@ -41,33 +42,35 @@ def cargar_y_validar_logs(ruta_archivo):
 
     return logs_limpios
 
-def procesar_metricas_iterativo(logs):
-    clientes_unicos = set(registro["Cliente"] for registro in logs)
+def desplegar_reporte_ejecutivo(reporte_final):
+   
+    print("\n" + "=" * 85)
+    print(
+        f"{'CLIENTE':<18} | {'PETICIONES':<12} | {'LATENCIA PROMEDIO':<18} | {'ERRORES 5xx':<12} | {'ESTADO'}"
+    )
+    print("=" * 85)
 
-    reporte_consolidado = {}
+    
+    UMBRAL_LATENCIA_MS = 2500 
+    UMBRAL_ERRORES_CRITICOS = 3  
 
-    for cliente_actual in clientes_unicos:
-        acumulador_tiempo = 0
-        contador_peticiones = 0
-        contador_errores_5xx = 0
+    for cliente, metricas in reporte_final.items():
+        promedio_formateado = f"{metricas['Promedio_Tiempo']:.2f} ms"
 
-        for log in logs:
-            if log["Cliente"] == cliente_actual:
-                acumulador_tiempo += log["Tiempo de respuesta (ms)"]
-                contador_peticiones += 1
-
-                if log["Código de estado"] >= 500:
-                    contador_errores_5xx += 1
-
-        if contador_peticiones > 0:
-            promedio_tiempo = acumulador_tiempo / contador_peticiones
+       
+        if (
+            metricas["Promedio_Tiempo"] > UMBRAL_LATENCIA_MS
+            or metricas["Errores_5xx"] > UMBRAL_ERRORES_CRITICOS
+        ):
+            estado_alerta = "🚨 CRÍTICO (SLA en riesgo)"
+        elif metricas["Errores_5xx"] > 0:
+            estado_alerta = "⚠️ ADVERTENCIA"
         else:
-            promedio_tiempo = 0.0
+            estado_alerta = "✅ ESTABLE"
 
-        reporte_consolidado[cliente_actual] = {
-            "Peticiones": contador_peticiones,
-            "Promedio_Tiempo": promedio_tiempo,
-            "Errores_5xx": contador_errores_5xx,
-        }
+        
+        print(
+            f"{cliente:<18} | {metricas['Peticiones']:<12} | {promedio_formateado:<18} | {metricas['Errores_5xx']:<12} | {estado_alerta}"
+        )
 
-    return reporte_consolidado
+    print("=" * 85 + "\n")
