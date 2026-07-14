@@ -1,3 +1,6 @@
+import os
+import csv
+
 def cargar_y_validar_logs(ruta_archivo):
  
     if not os.path.exists(ruta_archivo):
