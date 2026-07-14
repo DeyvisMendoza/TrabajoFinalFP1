@@ -26,7 +26,6 @@ def cargar_y_validar_logs(ruta_archivo):
 
         for num_fila, fila in enumerate(lector_csv, start=2):
             try:
-                # Validar y parsear tipos de datos
                 registro = {
                     "Cliente": fila["Cliente"].strip(),
                     "Tiempo de respuesta (ms)": int(
@@ -40,4 +39,14 @@ def cargar_y_validar_logs(ruta_archivo):
                     f" Advertencia: Fila {num_fila} ignorada por datos corruptos."
                 )
 
-    return logs_limpios#comentario1
+    return logs_limpios
+
+def procesar_metricas_iterativo(logs):
+    clientes_unicos = set(registro["Cliente"] for registro in logs)
+
+    reporte_consolidado = {}
+
+    for cliente_actual in clientes_unicos:
+        acumulador_tiempo = 0
+        contador_peticiones = 0
+        contador_errores_5xx = 0
