@@ -50,3 +50,24 @@ def procesar_metricas_iterativo(logs):
         acumulador_tiempo = 0
         contador_peticiones = 0
         contador_errores_5xx = 0
+
+        for log in logs:
+            if log["Cliente"] == cliente_actual:
+                acumulador_tiempo += log["Tiempo de respuesta (ms)"]
+                contador_peticiones += 1
+
+                if log["Código de estado"] >= 500:
+                    contador_errores_5xx += 1
+
+        if contador_peticiones > 0:
+            promedio_tiempo = acumulador_tiempo / contador_peticiones
+        else:
+            promedio_tiempo = 0.0
+
+        reporte_consolidado[cliente_actual] = {
+            "Peticiones": contador_peticiones,
+            "Promedio_Tiempo": promedio_tiempo,
+            "Errores_5xx": contador_errores_5xx,
+        }
+
+    return reporte_consolidado
